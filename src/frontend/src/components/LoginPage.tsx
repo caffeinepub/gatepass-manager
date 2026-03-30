@@ -1,31 +1,34 @@
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { GraduationCap, Loader2, ShieldCheck } from "lucide-react";
-import { motion } from "motion/react";
+import { GraduationCap, Loader2, ShieldCheck, User } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 
 interface LoginPageProps {
-  onLogin: (secret: string) => Promise<void>;
+  onLogin: (
+    secret: string,
+    role: "student" | "admin",
+    name?: string,
+  ) => Promise<void>;
   isLoading: boolean;
   error?: string | null;
 }
 
+type Role = "student" | "admin";
+
 export function LoginPage({ onLogin, isLoading, error }: LoginPageProps) {
-  const [secret, setSecret] = useState("");
+  const [role, setRole] = useState<Role>("student");
+  const [value, setValue] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!secret.trim()) return;
-    onLogin(secret.trim());
+    if (!value.trim()) return;
+    onLogin(value.trim(), role, role === "student" ? value.trim() : undefined);
   };
+
+  const isStudent = role === "student";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[oklch(0.22_0.09_255)] via-[oklch(0.28_0.09_255)] to-[oklch(0.22_0.07_240)] flex items-center justify-center p-4">
@@ -33,69 +36,118 @@ export function LoginPage({ onLogin, isLoading, error }: LoginPageProps) {
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="w-full max-w-md"
+        className="w-full max-w-sm"
       >
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 backdrop-blur mb-4">
             <GraduationCap className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-3xl font-display text-white">
+          <h1 className="text-3xl font-bold text-white tracking-tight">
             College Gate Pass
           </h1>
-          <p className="text-white/60 mt-2 text-sm">Management System</p>
+          <p className="text-white/60 mt-1 text-sm">Welcome! Who are you?</p>
         </div>
 
-        <Card className="border-0 shadow-2xl">
-          <CardHeader className="text-center pb-2">
-            <div className="inline-flex items-center justify-center gap-2 mb-1">
-              <ShieldCheck className="h-5 w-5 text-primary" />
-              <CardTitle className="text-xl">Sign In</CardTitle>
-            </div>
-            <CardDescription>
-              Enter your access key to continue. The first user to enter a
-              secret key becomes administrator.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="secret">Access Key</Label>
-                <Input
-                  id="secret"
-                  type="password"
-                  data-ocid="login.input"
-                  value={secret}
-                  onChange={(e) => setSecret(e.target.value)}
-                  placeholder="Enter your access key"
-                  autoComplete="current-password"
-                  required
-                />
-              </div>
-              {error && (
-                <p
-                  className="text-sm text-destructive"
-                  data-ocid="login.error_state"
-                >
-                  {error}
-                </p>
-              )}
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading || !secret.trim()}
-                data-ocid="login.submit_button"
+        <Card className="border-0 shadow-2xl rounded-2xl overflow-hidden">
+          <CardContent className="p-6 space-y-6">
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                data-ocid="login.student.toggle"
+                onClick={() => {
+                  setRole("student");
+                  setValue("");
+                }}
+                className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200 ${
+                  isStudent
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/40"
+                }`}
               >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
-                  </>
-                ) : (
-                  "Sign In"
+                <User className="h-6 w-6" />
+                <span className="text-sm font-semibold">I am Student</span>
+              </button>
+              <button
+                type="button"
+                data-ocid="login.admin.toggle"
+                onClick={() => {
+                  setRole("admin");
+                  setValue("");
+                }}
+                className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200 ${
+                  !isStudent
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/40"
+                }`}
+              >
+                <ShieldCheck className="h-6 w-6" />
+                <span className="text-sm font-semibold">I am Admin</span>
+              </button>
+            </div>
+
+            <AnimatePresence mode="wait">
+              <motion.form
+                key={role}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2 }}
+                onSubmit={handleSubmit}
+                className="space-y-4"
+              >
+                <div className="space-y-1.5">
+                  <Label htmlFor="entry-input" className="text-sm font-medium">
+                    {isStudent ? "Your Name" : "Admin Password"}
+                  </Label>
+                  <Input
+                    id="entry-input"
+                    data-ocid="login.input"
+                    type={isStudent ? "text" : "password"}
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                    placeholder={
+                      isStudent
+                        ? "Enter your full name"
+                        : "Enter admin password"
+                    }
+                    autoComplete={isStudent ? "name" : "current-password"}
+                    autoFocus
+                    className="h-11 text-base"
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground pt-0.5">
+                    {isStudent
+                      ? "Enter your name to access the gate pass system."
+                      : "First time? Any password you set becomes the admin key."}
+                  </p>
+                </div>
+
+                {error && (
+                  <p
+                    className="text-sm text-destructive"
+                    data-ocid="login.error_state"
+                  >
+                    {error}
+                  </p>
                 )}
-              </Button>
-            </form>
+
+                <Button
+                  type="submit"
+                  className="w-full h-11 text-base font-semibold"
+                  disabled={isLoading || !value.trim()}
+                  data-ocid="login.submit_button"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Please wait...
+                    </>
+                  ) : (
+                    "Continue →"
+                  )}
+                </Button>
+              </motion.form>
+            </AnimatePresence>
           </CardContent>
         </Card>
 

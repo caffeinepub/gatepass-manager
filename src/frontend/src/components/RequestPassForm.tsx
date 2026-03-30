@@ -26,21 +26,23 @@ interface FormData {
   note: string;
 }
 
-const initialForm: FormData = {
-  studentName: "",
-  studentId: "",
-  rollNumber: "",
-  department: "",
-  purpose: "",
-  destination: "",
-  expectedReturnTime: "",
-  note: "",
-};
+interface RequestPassFormProps {
+  studentName?: string;
+}
 
-export function RequestPassForm() {
+export function RequestPassForm({ studentName = "" }: RequestPassFormProps) {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-  const [form, setForm] = useState<FormData>(initialForm);
+  const [form, setForm] = useState<FormData>({
+    studentName,
+    studentId: "",
+    rollNumber: "",
+    department: "",
+    purpose: "",
+    destination: "",
+    expectedReturnTime: "",
+    note: "",
+  });
   const [submitted, setSubmitted] = useState(false);
 
   const mutation = useMutation({
@@ -60,7 +62,16 @@ export function RequestPassForm() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["myPasses"] });
       toast.success("Gate pass requested successfully!");
-      setForm(initialForm);
+      setForm((prev) => ({
+        ...prev,
+        studentId: "",
+        rollNumber: "",
+        department: "",
+        purpose: "",
+        destination: "",
+        expectedReturnTime: "",
+        note: "",
+      }));
       setSubmitted(true);
       setTimeout(() => setSubmitted(false), 3000);
     },
@@ -115,14 +126,13 @@ export function RequestPassForm() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="studentId">Student ID *</Label>
+              <Label htmlFor="studentId">Student ID</Label>
               <Input
                 id="studentId"
                 data-ocid="request.search_input"
                 value={form.studentId}
                 onChange={handleChange("studentId")}
                 placeholder="e.g. CS2021001"
-                required
               />
             </div>
             <div className="space-y-1.5">

@@ -8,7 +8,11 @@ import { useActor } from "../hooks/useActor";
 import { PassTable } from "./PassTable";
 import { RequestPassForm } from "./RequestPassForm";
 
-export function UserDashboard() {
+interface UserDashboardProps {
+  studentName: string;
+}
+
+export function UserDashboard({ studentName }: UserDashboardProps) {
   const { actor, isFetching } = useActor();
   const queryClient = useQueryClient();
   const [actionLoadingId, setActionLoadingId] = useState<bigint | null>(null);
@@ -90,7 +94,7 @@ export function UserDashboard() {
       </TabsContent>
 
       <TabsContent value="request" className="mt-4">
-        <RequestPassForm />
+        <RequestPassForm studentName={studentName} />
       </TabsContent>
     </Tabs>
   );

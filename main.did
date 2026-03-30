@@ -1,0 +1,68 @@
+type UserRole = 
+ variant {
+   admin;
+   guest;
+   user;
+ };
+type Stats = 
+ record {
+   approved: nat;
+   exited: nat;
+   pending: nat;
+   rejected: nat;
+   returned: nat;
+   total: nat;
+ };
+type PassStatus = 
+ variant {
+   Approved;
+   Exited;
+   Pending;
+   Rejected;
+   Returned;
+ };
+type LogEntry = 
+ record {
+   action: text;
+   passId: nat;
+   rollNumber: text;
+   studentName: text;
+   timestamp: int;
+ };
+type GatePass = 
+ record {
+   approvedAt: opt int;
+   department: text;
+   destination: text;
+   exitedAt: opt int;
+   expectedReturnTime: text;
+   id: nat;
+   note: text;
+   purpose: text;
+   rejectionReason: opt text;
+   requestedAt: int;
+   requester: principal;
+   returnedAt: opt int;
+   rollNumber: text;
+   status: PassStatus;
+   studentId: text;
+   studentName: text;
+ };
+service : {
+  _initializeAccessControlWithSecret: (userSecret: text) -> ();
+  approvePass: (id: nat) -> ();
+  assignCallerUserRole: (user: principal, role: UserRole) -> ();
+  getAllPasses: () -> (vec GatePass) query;
+  getCallerUserRole: () -> (UserRole) query;
+  getLog: () -> (vec LogEntry) query;
+  getMyPasses: () -> (vec GatePass) query;
+  getPassById: (id: nat) -> (opt GatePass) query;
+  getStats: () -> (Stats) query;
+  isCallerAdmin: () -> (bool) query;
+  markExit: (id: nat) -> ();
+  markReturn: (id: nat) -> ();
+  rejectPass: (id: nat, reason: text) -> ();
+  requestPass: (studentName: text, studentId: text, rollNumber: text,
+   department: text, purpose: text, destination: text, expectedReturnTime:
+   text, note: text) -> (nat);
+}
